@@ -13,12 +13,13 @@
 #include <stdlib.h>
 #include <netdb.h>
 
+#include "measurement.h"
 #include "readstat.h"
-#include "array.h"
+#include "msgbuf.h"
 
 
 #define MAX_CLIENTS 64
-
+#define PROTOCOL_VERSION 1
 
 enum servertype_e
 {
@@ -37,6 +38,99 @@ struct clientinfo_t
 
 size_t g_numClients = 0;
 struct clientinfo_t g_clientInfos[MAX_CLIENTS];
+
+struct measure_callback g_callbacks[32];
+struct measurement *g_measurements[32];
+size_t g_callbacks_num = 0;
+size_t g_measurements_num = 0;
+
+void register_callbacks()
+{
+    g_callbacks[g_callbacks_num++] = cpu_util_callback;
+    
+    for(size_t i = 0; i < g_callbacks_num; i++)
+    {
+        g_measurements_num += g_callbacks[i].num_measures;
+        g_measurements[i] = malloc(g_callbacks[i].num_measures * sizeof(struct measurement));
+    }
+}
+
+
+void init_measurements()
+{
+    for(size_t i = 0; i < g_callbacks_num; i++)
+        g_callbacks[i].init_func();
+}
+
+//size_t get_measurement_data_size(struct measurement *m)
+//{
+//    switch(m->type)
+//    {
+//    case MT_INT8:
+//    case MT_UINT8:
+//        return 1;
+//    case MT_INT16:
+//    case MT_UINT16:
+//        return 2;
+//    case MT_INT32:
+//    case MT_UINT32:
+//    case MT_FLOAT:
+//        return 4;
+//    case MT_STRING:
+//        return strlen(m->data);
+//    }
+//}
+
+void append_measurement(struct msgbuf *buf, struct measurement *m)
+{
+    msgbuf_app_byte(buf, m->type);
+    msgbuf_app_string(buf, m->name);
+
+    switch(m->type)
+    {
+    case MT_INT8:
+    case MT_UINT8:
+        msgbuf_app_byte(buf, *(uint8_t*)m->data);
+        break;
+    case MT_INT16:
+    case MT_UINT16:
+        msgbuf_app_short(buf, *(uint16_t*)m->data);
+        break;
+    case MT_INT32:
+    case MT_UINT32:
+        msgbuf_app_int(buf, *(uint32_t*)m->data);
+        break;
+    case MT_FLOAT:
+        msgbuf_app_float(buf, *(float*)m->data);
+        break;
+    case MT_STRING:
+        msgbuf_app_string(buf, (const char*)m->data);
+        break;
+    default:
+        printf("Unhandled switch in append_measurement\n");
+        abort();
+    }
+}
+
+
+void take_measurements(struct msgbuf *buf)
+{
+    msgbuf_clear(buf);
+    msgbuf_app_byte(buf, PROTOCOL_VERSION);
+    msgbuf_app_short(buf, 0); //reserve header size to fill later
+
+    for(size_t i = 0; i < g_callbacks_num; i++)
+    {
+        int result = g_callbacks[i].measure_func(g_measurements[i]);
+
+        for(int j = 0; j < result; j++)
+            append_measurement(buf, &g_measurements[i][j]);
+    }
+
+    //Set size in header
+    uint16_t size = buf->size;
+    memcpy(buf->data + 1, &size, 2);
+}
 
 
 int start_server(int port, enum servertype_e type /* = AF_INET6 */, bool local /* = false */)
@@ -159,7 +253,7 @@ void disconnect_client(int index)
 }
 
 
-int send_output()
+int send_output(char *msg, size_t size)
 {
     int fdmax = -1;
     fd_set fs_write;
@@ -184,9 +278,8 @@ int send_output()
             int sock = g_clientInfos[i].sock;
             if (FD_ISSET(sock, &fs_write))
             {
-                char msg[] = "Hello\n";
                 //TODO: do some real stuff here
-                if (send(sock, msg, strlen(msg), MSG_NOSIGNAL) <= 0)
+                if (send(sock, msg, size, MSG_NOSIGNAL) <= 0)
                     disconnect_client(i--);
             }
         }
@@ -196,13 +289,18 @@ int send_output()
 }
 
 
-int handle_clients()
+void handle_clients()
 {
+    struct msgbuf buf;
+    msgbuf_init(&buf);
+
     while (1)
     {
         //always look if we have a new client
         check_new_clients();
-        send_output();
+        msgbuf_clear(&buf);
+        take_measurements(&buf);
+        send_output(buf.data, buf.size);
         usleep(500000U);
     }
 }
@@ -210,22 +308,11 @@ int handle_clients()
 
 int main()
 {
+    register_callbacks();
+    init_measurements();
     start_server(29100, INET4, false);
     handle_clients();
     
     return 0;
-    
-    struct jiffyinfo_t lastInfo, nowInfo;
-    get_jiffy_info(&lastInfo);
-    
-    while (1)
-    {
-        sleep(1);
-        get_jiffy_info(&nowInfo);
-        int cpuUtil = get_cpu_util(&lastInfo, &nowInfo);
-        lastInfo = nowInfo;
-        printf("CPU-Util: %i (per mil)\n", cpuUtil);
-    }
 }
-
 

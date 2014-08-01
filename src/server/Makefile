@@ -1,4 +1,4 @@
-CCSOURCES = readstat.c main.c array.c
+CCSOURCES = readstat.c main.c msgbuf.c
 
 CC = gcc
 CCFLAGS_RELEASE = -std=c99 -O3 -DNDEBUG

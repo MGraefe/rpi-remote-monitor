@@ -247,13 +247,14 @@ void check_new_clients()
         }
         
         int clsock = accept(g_listenSock, addr, &addrsize);
-        if (clsock == -1)
-            return;
-        
-        print_connect_info(addr, addrsize);
-        
-        clientinfo_init(&g_clientInfos[g_numClients], clsock);
-        g_numClients++;
+        if (clsock != -1)
+        {
+            print_connect_info(addr, addrsize);
+
+            clientinfo_init(&g_clientInfos[g_numClients], clsock);
+            g_numClients++;
+        }
+        free(addr);
     }
 }
 

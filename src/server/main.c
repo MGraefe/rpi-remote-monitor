@@ -65,9 +65,11 @@ void clientinfo_destruct(struct clientinfo *info)
 
 void register_callbacks()
 {
+    size_t i;
+
     g_callbacks[g_callbacks_num++] = cpu_util_callback;
     
-    for(size_t i = 0; i < g_callbacks_num; i++)
+    for(i = 0; i < g_callbacks_num; i++)
     {
         g_measurements_num += g_callbacks[i].num_measures;
         g_measurements[i] = malloc(g_callbacks[i].num_measures * sizeof(struct measurement));
@@ -77,7 +79,8 @@ void register_callbacks()
 
 void init_measurements()
 {
-    for(size_t i = 0; i < g_callbacks_num; i++)
+    size_t i;
+    for(i = 0; i < g_callbacks_num; i++)
         g_callbacks[i].init_func();
 }
 
@@ -134,15 +137,17 @@ void append_measurement(struct msgbuf *buf, struct measurement *m)
 
 void take_measurements(struct msgbuf *buf)
 {
+    size_t i;
+    int result, j;
+
     msgbuf_clear(buf);
     msgbuf_app_byte(buf, PROTOCOL_VERSION);
     msgbuf_app_short(buf, 0); //reserve header size to fill later
 
-    for(size_t i = 0; i < g_callbacks_num; i++)
+    for(i = 0; i < g_callbacks_num; i++)
     {
-        int result = g_callbacks[i].measure_func(g_measurements[i]);
-
-        for(int j = 0; j < result; j++)
+        result = g_callbacks[i].measure_func(g_measurements[i]);
+        for(j = 0; j < result; j++)
             append_measurement(buf, &g_measurements[i][j]);
     }
 
@@ -300,11 +305,12 @@ int send_to_client(struct clientinfo *client)
 int send_output()
 {
     int repeat;
+    size_t i;
     do {
         int fdmax = -1;
         fd_set fs_write;
         FD_ZERO(&fs_write);
-        for (size_t i = 0; i < g_numClients; i++)
+        for (i = 0; i < g_numClients; i++)
         {
             if (g_clientInfos[i].sendbuf.size > 0)
             {
@@ -320,7 +326,7 @@ int send_output()
             break;
     
         repeat = 0;
-        for (size_t i = 0; i < g_numClients; i++)
+        for (i = 0; i < g_numClients; i++)
         {
             if (FD_ISSET(g_clientInfos[i].sock, &fs_write))
             {
@@ -339,7 +345,9 @@ int send_output()
 
 void main_loop()
 {
+    size_t i;
     struct msgbuf buf;
+
     msgbuf_init(&buf);
 
     while (1)
@@ -354,7 +362,7 @@ void main_loop()
         // Copy the measurement into the send-buffer of all clients IF their buffer is empty
         // If their buffer is not empty they have some part of previous messages pending and
         // simply are discarded from this update to prevent cluttering the server.
-        for (size_t i = 0; i < g_numClients; i++)
+        for (i = 0; i < g_numClients; i++)
             if (g_clientInfos[i].sendbuf.size == 0)
                 msgbuf_app(&g_clientInfos[i].sendbuf, buf.data, buf.size);
 

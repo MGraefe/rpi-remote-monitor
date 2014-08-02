@@ -11,7 +11,8 @@ struct jiffyinfo_t
 
 
 int get_jiffy_info(struct jiffyinfo_t *info)
-{    
+{
+    int i;
     FILE *f = fopen("/proc/stat", "r");
     if (!f)
         goto error;
@@ -25,7 +26,7 @@ int get_jiffy_info(struct jiffyinfo_t *info)
         goto error;
     
     info->total = 0;
-    for (int i = 0; i < 7; ++i)
+    for (i = 0; i < 7; ++i)
         info->total += jiffies[i];
     info->idle = jiffies[3];
     return 0;

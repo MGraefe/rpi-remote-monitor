@@ -75,3 +75,12 @@ void msgbuf_clear(struct msgbuf *buf)
 {
     buf->size = 0;
 }
+
+void msgbuf_dealloc(struct msgbuf *buf)
+{
+    if (buf->data != NULL)
+        free(buf->data);
+    buf->data = NULL;
+    buf->size = 0;
+    buf->capacity = 0;
+}

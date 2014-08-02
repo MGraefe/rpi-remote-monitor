@@ -26,5 +26,7 @@ void msgbuf_app_float(struct msgbuf *buf, float f);
 
 void msgbuf_clear(struct msgbuf *buf);
 
+void msgbuf_dealloc(struct msgbuf *buf);
+
 
 #endif

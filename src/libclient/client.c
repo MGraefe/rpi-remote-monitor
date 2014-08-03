@@ -239,7 +239,7 @@ enum rprm_error rprm_receive(struct rprm_client *client)
 
             /* received more than one packet? */
             if (client->_recvbuf.size > packet_size)
-                client->_packet_offset = client->_recvbuf.size;
+                client->_packet_offset = packet_size;
             break;
         }
     }

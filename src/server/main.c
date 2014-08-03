@@ -13,9 +13,10 @@
 #include <stdlib.h>
 #include <netdb.h>
 
-#include "measurement.h"
+#include "shared/measurement.h"
+#include "shared/msgbuf.h"
+
 #include "readstat.h"
-#include "msgbuf.h"
 
 
 #define MAX_CLIENTS 64

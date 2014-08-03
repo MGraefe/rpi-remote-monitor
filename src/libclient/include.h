@@ -18,6 +18,9 @@
 #define LIBCLIENT_PUBLIC LIBCLIENT_IMPORT
 #endif
 
+#include <stddef.h>
+#include "shared/msgbuf.h"
+
 struct rprm_client
 {
     int _socket;

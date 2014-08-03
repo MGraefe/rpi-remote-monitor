@@ -1,7 +1,8 @@
 
 #include <stdio.h>
 #include "readstat.h"
-#include "measurement.h"
+
+#include "shared/measurement.h"
 
 struct jiffyinfo_t
 {

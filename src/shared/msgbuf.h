@@ -2,6 +2,9 @@
 #ifndef MSGBUF_H__
 #define MSGBUF_H__
 
+#include <stddef.h>
+#include <stdint.h>
+
 //Call msgbuf_init before usage!!
 struct msgbuf
 {

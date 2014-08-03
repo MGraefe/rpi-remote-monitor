@@ -18,9 +18,9 @@
     #define SOCKET int
 #endif
 
-#include "../server/measurement.h"
-#include "../server/msgbuf.h"
-#include "include.h"
+#include "shared/measurement.h"
+#include "shared/msgbuf.h"
+#include "libclient/include.h"
 
 
 #define RPRM_PACKET_HEADER_SIZE 4
@@ -182,7 +182,8 @@ int _packet_unpack(const char *data, size_t data_size, struct rprm_client *clien
 
         /* read data */
         client->measurements[i].data = dataptr;
-        mds = _get_data_size(client->measurements[i].type, data_size - (dataptr - data));
+        mds = _get_measurement_data_size(&client->measurements[i],
+                data_size - (dataptr - data));
         if (mds < 0)
             break;
         dataptr += mds;

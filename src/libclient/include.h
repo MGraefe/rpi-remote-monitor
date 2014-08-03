@@ -20,22 +20,17 @@
 
 #include <stddef.h>
 #include "shared/measurement.h"
-#include "shared/msgbuf.h"
 
-struct rprm_client
+struct rprm_connection
 {
-    int _socket;
-    struct msgbuf _recvbuf;
-    size_t num_measurements;
-    size_t _packet_offset;
-    struct measurement *measurements;
+    void *internals;
 };
 
 enum rprm_connection_type
 {
     UNSPEC,
     IPV4,
-    IPV6
+    IPV6,
 };
 
 enum rprm_error
@@ -50,10 +45,14 @@ enum rprm_error
 };
 
 LIBCLIENT_PUBLIC
-enum rprm_error rprm_connect(struct rprm_client *client,
+enum rprm_error rprm_connect(struct rprm_connection *conn,
         const char *address, int port, enum rprm_connection_type type);
 
 LIBCLIENT_PUBLIC
-enum rprm_error rprm_receive(struct rprm_client *client);
+enum rprm_error rprm_receive(const struct rprm_connection *conn, size_t *num_measurements);
+
+LIBCLIENT_PUBLIC
+enum rprm_error rprm_get_data(struct rprm_connection *conn,
+        struct measurement *measurements);
 
 #endif

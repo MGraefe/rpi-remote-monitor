@@ -136,7 +136,7 @@ void take_measurements(struct msgbuf *buf)
     }
 
     //Set size in header
-    uint16_t size = buf->size;
+    uint16_t size = htons(buf->size);
     memcpy(buf->data + 1, &size, 2);
 }
 

@@ -19,6 +19,7 @@
 #endif
 
 #include <stddef.h>
+#include "shared/measurement.h"
 #include "shared/msgbuf.h"
 
 struct rprm_client

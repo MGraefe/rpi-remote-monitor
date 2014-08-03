@@ -84,24 +84,6 @@ void init_measurements()
         g_callbacks[i].init_func();
 }
 
-//size_t get_measurement_data_size(struct measurement *m)
-//{
-//    switch(m->type)
-//    {
-//    case MT_INT8:
-//    case MT_UINT8:
-//        return 1;
-//    case MT_INT16:
-//    case MT_UINT16:
-//        return 2;
-//    case MT_INT32:
-//    case MT_UINT32:
-//    case MT_FLOAT:
-//        return 4;
-//    case MT_STRING:
-//        return strlen(m->data);
-//    }
-//}
 
 void append_measurement(struct msgbuf *buf, struct measurement *m)
 {
@@ -143,6 +125,7 @@ void take_measurements(struct msgbuf *buf)
     msgbuf_clear(buf);
     msgbuf_app_byte(buf, PROTOCOL_VERSION);
     msgbuf_app_short(buf, 0); //reserve header size to fill later
+    msgbuf_app_byte(buf, g_measurements_num);
 
     for(i = 0; i < g_callbacks_num; i++)
     {

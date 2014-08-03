@@ -61,9 +61,7 @@ void msgbuf_app_byte(struct msgbuf *buf, uint8_t i)
 void msgbuf_app_string(struct msgbuf *buf, const char *str)
 {
     size_t len = strlen(str);
-    len = len > 0xFFFF ? 0xFFFF : len;
-    msgbuf_app_short(buf, (uint16_t)len);
-    msgbuf_app(buf, str, len);
+    msgbuf_app(buf, str, len+1);
 }
 
 void msgbuf_app_float(struct msgbuf *buf, float f)

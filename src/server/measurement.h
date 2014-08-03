@@ -20,7 +20,7 @@ struct measurement
 {
     const char *name;
     enum measurement_datatype type;
-    void *data;
+    const void *data;
 };
 
 struct measure_callback
